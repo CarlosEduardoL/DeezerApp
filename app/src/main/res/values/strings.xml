@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Reto2</string>
+    <string name="search_playlist">Search Playlist</string>
+    <string name="search_a_playlist">search a playlist</string>
+    <string name="visualize_playlist">Visualize PlayList</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="songs_count">Songs count</string>
+    <string name="fans_count">Fans count</string>
+    <string name="playlist_banner">playlist banner</string>
+    <string name="back_button">back button</string>
+</resources>
