@@ -1,5 +1,6 @@
 package zero.network.reto2
 
+import android.content.Intent
 import android.view.LayoutInflater.from
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +23,7 @@ class SongAdapter: RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
         holder.bind(songs[position])
     }
 
-    class SongViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    class SongViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
 
         val title = view.songNameField
         val artist = view.songArtistField
@@ -43,6 +44,12 @@ class SongAdapter: RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
             title.text = song.name
             artist.text = song.artist
             date.text = song.releaseDate
+
+            view.setOnClickListener {
+                val intent = Intent(view.context, SongActivity::class.java)
+                intent.putExtra("song", song)
+                it.context.startActivity(intent)
+            }
         }
 
     }

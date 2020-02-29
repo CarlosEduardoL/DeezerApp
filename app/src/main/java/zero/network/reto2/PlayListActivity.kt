@@ -26,6 +26,8 @@ class PlayListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_play_list)
         val playlist = intent.extras!!.getSerializable("playlist")
 
+        backButton.setOnClickListener { finish() }
+
         val adapter = SongAdapter()
 
         songsList.apply {

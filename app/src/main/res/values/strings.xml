@@ -9,4 +9,6 @@
     <string name="fans_count">Fans count</string>
     <string name="playlist_banner">playlist banner</string>
     <string name="back_button">back button</string>
+    <string name="visualize_song">Visualize Song</string>
+    <string name="listen_song">Listen Song</string>
 </resources>
