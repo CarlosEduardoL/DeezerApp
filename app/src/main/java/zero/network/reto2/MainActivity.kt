@@ -4,18 +4,18 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
+@ExperimentalCoroutinesApi
 class MainActivity : AppCompatActivity() {
+
+    private var actualJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,13 +28,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         searchButton.setOnClickListener {
-            GlobalScope.launch {
+            actualJob?.cancel()
+            adapter.items.removeAll(adapter.items.toList())
+            adapter.notifyDataSetChanged()
+
+            actualJob = GlobalScope.launch {
                 fetchData().collect {
                     withContext(Dispatchers.Main){
                         adapter.items += it
                         adapter.notifyItemInserted(adapter.items.size - 1)
                     }
                 }
+                actualJob = null
             }
         }
     }
