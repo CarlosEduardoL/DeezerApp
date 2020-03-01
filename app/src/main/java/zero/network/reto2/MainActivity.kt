@@ -32,12 +32,10 @@ class MainActivity : AppCompatActivity() {
             adapter.items.removeAll(adapter.items.toList())
             adapter.notifyDataSetChanged()
 
-            actualJob = GlobalScope.launch {
+            actualJob = GlobalScope.launch(Dispatchers.Main) {
                 fetchData().collect {
-                    withContext(Dispatchers.Main){
-                        adapter.items += it
-                        adapter.notifyItemInserted(adapter.items.size - 1)
-                    }
+                    adapter.items += it
+                    adapter.notifyItemInserted(adapter.items.size - 1)
                 }
                 actualJob = null
             }
@@ -46,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun fetchData(): Flow<PlayList> {
         val data =
-            JSONObject(httpGet("https://api.deezer.com/search/playlist?q=${searchBar.text}"))
+            JSONObject(httpGet("https://api.deezer.com/search/playlist?q=${searchBar.text.toString().ifEmpty { "Sia" }}"))
                 .getJSONArray("data")
         return flow {
             for (i in 0 until data.length()) {

@@ -7,13 +7,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.activity_play_list.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 @ExperimentalCoroutinesApi
@@ -54,12 +57,10 @@ class PlayListActivity : AppCompatActivity() {
                 .into(playlistBanner)
 
 
-            actualJob = GlobalScope.launch {
+            actualJob = GlobalScope.launch(Main) {
                 fetchData(playlist).collect {
-                    withContext(Main){
-                        adapter.songs.add(it)
-                        adapter.notifyItemInserted(adapter.songs.size-1)
-                    }
+                    adapter.songs.add(it)
+                    adapter.notifyItemInserted(adapter.songs.size-1)
                 }
             }
         }
