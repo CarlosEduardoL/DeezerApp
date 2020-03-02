@@ -5,8 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.activity_song.*
 
 
@@ -19,18 +17,26 @@ class SongActivity : AppCompatActivity() {
 
         backButton.setOnClickListener { finish() }
 
-        intent.extras!!.getSerializable("song").apply {
+        val extra = intent.extras
+        if (extra == null) {
+            finish()
+            return
+        }
+        val song = extra.getSerializable("song")
+
+        if (song == null) {
+            finish()
+            return
+        }
+
+
+        song.apply {
             if (this is Song){
                 songAlbumField.text = album
                 songArtistField.text = artist
                 songDurationField.text = "${duration/60}:${duration%60}"
-                val requestOptions = RequestOptions()
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                Glide.with(this@SongActivity)
-                    .applyDefaultRequestOptions(requestOptions)
-                    .load(image)
-                    .into(songImage)
+
+                loadImage(image, songImage)
 
                 songListenButton.setOnClickListener {
                     val i = Intent(Intent.ACTION_VIEW)
@@ -41,4 +47,5 @@ class SongActivity : AppCompatActivity() {
         }
 
     }
+
 }

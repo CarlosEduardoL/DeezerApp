@@ -6,10 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import org.json.JSONObject
 
 @ExperimentalCoroutinesApi
@@ -42,15 +39,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun fetchData(): Flow<PlayList> {
-        val data =
-            JSONObject(httpGet("https://api.deezer.com/search/playlist?q=${searchBar.text.toString().ifEmpty { "Sia" }}"))
-                .getJSONArray("data")
-        return flow {
-            for (i in 0 until data.length()) {
-                val id = data.getJSONObject(i).getLong("id")
-                emit(PlayList.fromJson(JSONObject(httpGet("https://api.deezer.com/playlist/$id"))))
-            }
-        }.flowOn(IO)
+    private suspend fun fetchData(): Flow<PlayList> =
+        if (searchBar.text.toString().isEmpty()) flowOf()
+        else {
+            val data =
+                JSONObject(httpGet("$SEARCH_URL${searchBar.text}"))
+                    .getJSONArray("data")
+            flow {
+                for (i in 0 until data.length()) {
+                    val id = data.getJSONObject(i).getLong("id")
+                    emit(PlayList.fromJson(JSONObject(httpGet("$PLAYLIST_URL$id"))))
+                }
+            }.flowOn(IO)
+        }
+
+    companion object {
+        private const val SEARCH_URL = "https://api.deezer.com/search/playlist?q="
+        private const val PLAYLIST_URL = "https://api.deezer.com/playlist/"
     }
+
 }

@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.activity_play_list.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -30,10 +28,7 @@ class PlayListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_play_list)
         val playlist = intent.extras!!.getSerializable("playlist")
 
-        backButton.setOnClickListener {
-            actualJob?.cancel()
-            finish()
-        }
+        backButton.setOnClickListener { finish() }
 
         val adapter = SongAdapter()
 
@@ -42,35 +37,30 @@ class PlayListActivity : AppCompatActivity() {
             this.adapter = adapter
         }
 
-        if (playlist is PlayList){
-            playlistTitle.text = playlist.title
-            playlistDescription.text = playlist.description
-            playlistFans.text = "Fans: ${playlist.fansCount}"
-            playlistSongsCount.text = "Songs: ${playlist.songCount}"
-            val requestOptions = RequestOptions()
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
+        if (playlist is PlayList) playlist.apply{
+            playlistTitle.text = title
+            playlistDescription.text = description
+            playlistFans.text = "Fans: $fansCount"
+            playlistSongsCount.text = "Songs: $songCount"
 
-            Glide.with(this)
-                .applyDefaultRequestOptions(requestOptions)
-                .load(playlist.image)
-                .into(playlistBanner)
-
+            loadImage(image, playlistBanner)
 
             actualJob = GlobalScope.launch(Main) {
-                fetchData(playlist).collect {
+                fetchData(this@apply).collect {
                     adapter.songs.add(it)
                     adapter.notifyItemInserted(adapter.songs.size-1)
                 }
             }
         }
+    }
 
-
+    override fun onDestroy() {
+        actualJob?.cancel()
+        super.onDestroy()
     }
 
     private suspend fun fetchData(list: PlayList): Flow<Song> {
-        println(JSONObject(httpGet("https://api.deezer.com/playlist/${list.id}")))
-        val data = JSONObject(httpGet("https://api.deezer.com/playlist/${list.id}"))
+        val data = JSONObject(httpGet("$PLAYLIST_URL${list.id}"))
             .getJSONObject("tracks")
             .getJSONArray("data")
         return flow {
@@ -83,4 +73,9 @@ class PlayListActivity : AppCompatActivity() {
 
     private suspend fun fetchSong(id: String) =
         Song.fromJson(JSONObject(httpGet("https://api.deezer.com/track/$id")))
+
+    companion object {
+        private const val PLAYLIST_URL = "https://api.deezer.com/playlist/"
+    }
+
 }

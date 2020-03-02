@@ -5,8 +5,6 @@ import android.view.LayoutInflater.from
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.playlist_card.view.*
 
 class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>() {
@@ -31,14 +29,8 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>
         private val count = view.playlistCountField
 
         fun bind(playList: PlayList) {
-            val requestOptions = RequestOptions()
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
 
-            Glide.with(itemView.context)
-                .applyDefaultRequestOptions(requestOptions)
-                .load(playList.image)
-                .into(image)
+            itemView.context.loadImage(playList.image, image)
 
             title.text = playList.title
             creator.text = playList.creator
