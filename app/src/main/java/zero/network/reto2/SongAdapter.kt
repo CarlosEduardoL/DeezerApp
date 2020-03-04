@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.song_card.view.*
+import zero.network.reto2.utils.loadImage
 
 class SongAdapter: RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 

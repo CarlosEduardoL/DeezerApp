@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_song.*
+import zero.network.reto2.utils.getSerializableOr
+import zero.network.reto2.utils.loadImage
 
 
 class SongActivity : AppCompatActivity() {
@@ -17,32 +19,23 @@ class SongActivity : AppCompatActivity() {
 
         backButton.setOnClickListener { finish() }
 
-        val extra = intent.extras
-        if (extra == null) {
-            finish()
-            return
-        }
-        val song = extra.getSerializable("song")
-
-        if (song == null) {
+        val song = intent.getSerializableOr<Song>("song") {
             finish()
             return
         }
 
-
+        // Load Song information on the view
         song.apply {
-            if (this is Song){
-                songAlbumField.text = album
-                songArtistField.text = artist
-                songDurationField.text = "${duration/60}:${duration%60}"
+            songAlbumField.text = album
+            songArtistField.text = artist
+            val minutes = duration % 60
+            songDurationField.text = "${duration / 60}:${if (minutes > 10) "" else "0"}$minutes" // format the duration in minutes:seconds
 
-                loadImage(image, songImage)
+            loadImage(image, songImage)
 
-                songListenButton.setOnClickListener {
-                    val i = Intent(Intent.ACTION_VIEW)
-                    i.data = Uri.parse(link)
-                    startActivity(i)
-                }
+            songListenButton.setOnClickListener {
+                val i = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(link) }
+                startActivity(i)
             }
         }
 

@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.playlist_card.view.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import zero.network.reto2.utils.loadImage
 
 class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>() {
 
@@ -17,6 +19,7 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>
 
     override fun getItemCount() = items.size
 
+    @ExperimentalCoroutinesApi
     override fun onBindViewHolder(holder: PlayListViewHolder, position: Int) {
         holder.bind(items[position])
     }
@@ -28,6 +31,7 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>
         private val creator = view.playlistCreatorField
         private val count = view.playlistCountField
 
+        @ExperimentalCoroutinesApi
         fun bind(playList: PlayList) {
 
             itemView.context.loadImage(playList.image, image)

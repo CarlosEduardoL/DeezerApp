@@ -1,4 +1,4 @@
-package zero.network.reto2
+package zero.network.reto2.utils
 
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -8,7 +8,14 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-suspend fun httpGet(myURL: String?): String = withContext(IO) {
+/**
+ * HTTP Get method implementation run in IO context
+ */
+suspend fun getIO(myURL: String?): String = withContext(IO) {
+    get(myURL)
+}
+
+fun get(myURL: String?): String {
 
     val inputStream: InputStream
     val result:String
@@ -26,10 +33,15 @@ suspend fun httpGet(myURL: String?): String = withContext(IO) {
     inputStream = conn.inputStream
 
     // convert inputstream to string
-    result = inputStream?.let{convertInputStreamToString(it)} ?: "Did not work!"
+    result = inputStream?.let{
+        convertInputStreamToString(
+            it
+        )
+    } ?: "Did not work!"
 
-    result
+    return result
 }
+
 
 private fun convertInputStreamToString(inputStream: InputStream): String {
     val bufferedReader = BufferedReader(InputStreamReader(inputStream))

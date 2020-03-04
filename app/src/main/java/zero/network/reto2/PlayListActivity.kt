@@ -10,12 +10,14 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import zero.network.reto2.utils.get
+import zero.network.reto2.utils.getSerializableOr
+import zero.network.reto2.utils.loadImage
 
 @ExperimentalCoroutinesApi
 class PlayListActivity : AppCompatActivity() {
@@ -26,18 +28,23 @@ class PlayListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_play_list)
-        val playlist = intent.extras!!.getSerializable("playlist")
 
-        backButton.setOnClickListener { finish() }
+        // get the playlist from the intent
+        val playlist = intent.getSerializableOr<PlayList>("playlist") {
+            finish() // in case of error finish the activity
+            return   // and return the onCreate method [in theory this error is impossible but just in case]
+        }
 
-        val adapter = SongAdapter()
+        backButton.setOnClickListener { finish() } // navigation item to return to the main activity
+
+        val songAdapter = SongAdapter()
 
         songsList.apply {
             layoutManager = LinearLayoutManager(this@PlayListActivity)
-            this.adapter = adapter
+            adapter = songAdapter
         }
 
-        if (playlist is PlayList) playlist.apply{
+        playlist.apply {
             playlistTitle.text = title
             playlistDescription.text = description
             playlistFans.text = "Fans: $fansCount"
@@ -46,9 +53,9 @@ class PlayListActivity : AppCompatActivity() {
             loadImage(image, playlistBanner)
 
             actualJob = GlobalScope.launch(Main) {
-                fetchData(this@apply).collect {
-                    adapter.songs.add(it)
-                    adapter.notifyItemInserted(adapter.songs.size-1)
+                fetchData(playlist).collect {
+                    songAdapter.songs.add(it)
+                    songAdapter.notifyItemInserted(songAdapter.songs.lastIndex)
                 }
             }
         }
@@ -59,23 +66,22 @@ class PlayListActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private suspend fun fetchData(list: PlayList): Flow<Song> {
-        val data = JSONObject(httpGet("$PLAYLIST_URL${list.id}"))
+    private suspend fun fetchData(list: PlayList) = flow {
+        val data = JSONObject(get("$PLAYLIST_URL${list.id}"))
             .getJSONObject("tracks")
             .getJSONArray("data")
-        return flow {
-            for (i in 0 until data.length()) {
-                val songJson = data.getJSONObject(i)
-                emit(fetchSong(songJson.getString("id")))
-            }
-        }.flowOn(IO)
-    }
+        (0 until data.length()).forEach {
+            val songJson = data.getJSONObject(it)
+            emit(fetchSong(songJson.getString("id")))
+        }
+    }.flowOn(IO)
 
-    private suspend fun fetchSong(id: String) =
-        Song.fromJson(JSONObject(httpGet("https://api.deezer.com/track/$id")))
+    private fun fetchSong(id: String) =
+        Song.fromJson(JSONObject(get("$TRACK_URL$id")))
 
     companion object {
         private const val PLAYLIST_URL = "https://api.deezer.com/playlist/"
+        private const val TRACK_URL = "https://api.deezer.com/track/"
     }
 
 }

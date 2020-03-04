@@ -3,6 +3,9 @@ package zero.network.reto2
 import org.json.JSONObject
 import java.io.Serializable
 
+/**
+ * Object than represent a Deezer playlist
+ */
 data class PlayList(
     val id: Long,
     val title: String,

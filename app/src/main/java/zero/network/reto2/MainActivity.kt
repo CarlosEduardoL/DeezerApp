@@ -8,10 +8,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.*
 import org.json.JSONObject
+import zero.network.reto2.utils.get
+import zero.network.reto2.utils.getIO
 
 @ExperimentalCoroutinesApi
 class MainActivity : AppCompatActivity() {
 
+    /**
+     * Search Job
+     */
     private var actualJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,33 +30,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         searchButton.setOnClickListener {
-            actualJob?.cancel()
+            actualJob?.cancel() // in case job is running cancel it and restart.
             adapter.items.removeAll(adapter.items.toList())
             adapter.notifyDataSetChanged()
 
             actualJob = GlobalScope.launch(Dispatchers.Main) {
                 fetchData().collect {
                     adapter.items += it
-                    adapter.notifyItemInserted(adapter.items.size - 1)
+                    adapter.notifyItemInserted(adapter.items.lastIndex)
                 }
                 actualJob = null
             }
         }
     }
 
+    /**
+     * Return a flow that fetch the playlists over the IO thread
+     */
     private suspend fun fetchData(): Flow<PlayList> =
         if (searchBar.text.toString().isEmpty()) flowOf()
-        else {
-            val data =
-                JSONObject(httpGet("$SEARCH_URL${searchBar.text}"))
-                    .getJSONArray("data")
-            flow {
-                for (i in 0 until data.length()) {
-                    val id = data.getJSONObject(i).getLong("id")
-                    emit(PlayList.fromJson(JSONObject(httpGet("$PLAYLIST_URL$id"))))
+        else flow {
+                val data =
+                    JSONObject(getIO("$SEARCH_URL${searchBar.text}"))
+                        .getJSONArray("data")
+                ( 0 until data.length() ).forEach {
+                    val id = data.getJSONObject(it).getLong("id")
+                    emit(PlayList.fromJson(JSONObject(
+                        get("$PLAYLIST_URL$id")
+                    )))
                 }
             }.flowOn(IO)
-        }
+
 
     companion object {
         private const val SEARCH_URL = "https://api.deezer.com/search/playlist?q="
