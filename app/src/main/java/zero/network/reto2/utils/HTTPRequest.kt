@@ -11,12 +11,7 @@ import java.net.URL
 /**
  * HTTP Get method implementation run in IO context
  */
-suspend fun getIO(myURL: String?): String = withContext(IO) {
-    get(myURL)
-}
-
-fun get(myURL: String?): String {
-
+suspend fun getHTTP(myURL: String?): String = withContext(IO) {
     val inputStream: InputStream
     val result:String
 
@@ -39,7 +34,7 @@ fun get(myURL: String?): String {
         )
     } ?: "Did not work!"
 
-    return result
+    result
 }
 
 

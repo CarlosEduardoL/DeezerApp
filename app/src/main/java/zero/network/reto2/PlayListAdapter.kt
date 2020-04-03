@@ -11,7 +11,7 @@ import zero.network.reto2.utils.loadImage
 
 class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>() {
 
-    val items= mutableListOf<PlayList>()
+    private val items= mutableListOf<PlayList>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = PlayListViewHolder(
         from(parent.context).inflate(R.layout.playlist_card, parent, false)
@@ -22,6 +22,16 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.PlayListViewHolder>
     @ExperimentalCoroutinesApi
     override fun onBindViewHolder(holder: PlayListViewHolder, position: Int) {
         holder.bind(items[position])
+    }
+
+    fun addPlayList(playlist: PlayList) {
+        items.add(playlist)
+        notifyItemInserted(items.lastIndex)
+    }
+
+    fun clear() {
+        items.removeAll(items.toList())
+        notifyDataSetChanged()
     }
 
     class PlayListViewHolder(private val view: View): RecyclerView.ViewHolder(view) {

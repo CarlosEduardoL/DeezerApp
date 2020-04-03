@@ -1,6 +1,8 @@
 package zero.network.reto2.utils
 
 import android.content.Intent
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.Serializable
 
 const val EXTRA_ERROR = "Intent don't have extra information"
@@ -24,3 +26,11 @@ inline fun <reified T : Serializable> Intent.getSerializableOr(
     if (it is T) it
     else or(ClassCastException("$CAST_EXCEPTION ${T::class.qualifiedName}"))
 }
+
+fun JSONArray.forEach(action: (JSONObject)->Unit){
+    for (index in 0 until this.length())
+        action(this.getJSONObject(index))
+}
+
+val String.json: JSONObject
+    get() = JSONObject(this)

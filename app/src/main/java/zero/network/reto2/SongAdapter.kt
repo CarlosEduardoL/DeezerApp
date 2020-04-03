@@ -10,7 +10,7 @@ import zero.network.reto2.utils.loadImage
 
 class SongAdapter: RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
-    val songs = mutableListOf<Song>()
+    private val songs = mutableListOf<Song>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = SongViewHolder(
         from(parent.context).inflate(R.layout.song_card, parent, false)
@@ -20,6 +20,11 @@ class SongAdapter: RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
         holder.bind(songs[position])
+    }
+
+    fun addSong(song: Song) {
+        songs.add(song)
+        notifyItemInserted(songs.lastIndex)
     }
 
     class SongViewHolder(private val view: View): RecyclerView.ViewHolder(view) {

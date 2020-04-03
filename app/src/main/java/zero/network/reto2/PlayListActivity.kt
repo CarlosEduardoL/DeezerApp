@@ -5,24 +5,15 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_play_list.*
-import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import org.json.JSONObject
-import zero.network.reto2.utils.get
-import zero.network.reto2.utils.getSerializableOr
-import zero.network.reto2.utils.loadImage
+import zero.network.reto2.utils.*
 
 @ExperimentalCoroutinesApi
 class PlayListActivity : AppCompatActivity() {
 
-    private var actualJob: Job? = null
+    private var scope = CoroutineScope(Main)
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,9 +30,9 @@ class PlayListActivity : AppCompatActivity() {
 
         val songAdapter = SongAdapter()
 
-        songsList.apply {
-            layoutManager = LinearLayoutManager(this@PlayListActivity)
-            adapter = songAdapter
+        songsList.let {
+            it.layoutManager = LinearLayoutManager(this)
+            it.adapter = songAdapter
         }
 
         playlist.apply {
@@ -52,32 +43,26 @@ class PlayListActivity : AppCompatActivity() {
 
             loadImage(image, playlistBanner)
 
-            actualJob = GlobalScope.launch(Main) {
-                fetchData(playlist).collect {
-                    songAdapter.songs.add(it)
-                    songAdapter.notifyItemInserted(songAdapter.songs.lastIndex)
-                }
+            scope.launch {
+                JSONObject(getHTTP("$PLAYLIST_URL${this@apply.id}"))
+                    .getJSONObject("tracks")
+                    .getJSONArray("data")
+                    .forEach {
+                        scope.launch {
+                            songAdapter.addSong(fetchSong(it.getString("id")))
+                        }
+                    }
             }
         }
     }
 
     override fun onDestroy() {
-        actualJob?.cancel()
+        scope.cancel()
         super.onDestroy()
     }
 
-    private suspend fun fetchData(list: PlayList) = flow {
-        val data = JSONObject(get("$PLAYLIST_URL${list.id}"))
-            .getJSONObject("tracks")
-            .getJSONArray("data")
-        (0 until data.length()).forEach {
-            val songJson = data.getJSONObject(it)
-            emit(fetchSong(songJson.getString("id")))
-        }
-    }.flowOn(IO)
-
-    private fun fetchSong(id: String) =
-        Song.fromJson(JSONObject(get("$TRACK_URL$id")))
+    private suspend fun fetchSong(id: String) =
+        Song.fromJson(getHTTP("$TRACK_URL$id").json)
 
     companion object {
         private const val PLAYLIST_URL = "https://api.deezer.com/playlist/"
